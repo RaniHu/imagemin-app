@@ -1,17 +1,34 @@
 {
   "name": "imagemin-app",
-  "private": true,
+  "productName": "ImageminApp",
   "version": "0.1.0",
   "description": "imagemin as an OS X, Linux and Windows app",
   "license": "MIT",
-  "main": "main.js",
+  "repository": "imagemin/imagemin-app",
+  "author": {
+    "name": "Kevin Mårtensson",
+    "email": "kevinmartensson@gmail.com",
+    "url": "https://github.com/kevva"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "build": "electron-packager . $npm_package_productName --prune --ignore=node_modules/electron-prebuilt --ignore=node_modules/electron-packager --ignore=.git",
+    "start": "electron ."
+  },
+  "main": "index.js",
+  "files": [
+    "browser.js",
+    "index.js",
+    "index.html",
+    "index.css",
+    "lib"
+  ],
+  "keywords": [
+  ],
   "devDependencies": {
-    "clean-css": "^2.2.13",
-    "duo": "^0.7.5",
-    "each-async": "^1.0.0",
-    "imagemin": "^1.0.2",
-    "myth": "^1.1.1",
-    "object-assign": "^1.0.0",
-    "uglify-js": "^2.4.15"
+    "electron-packager": "^3.1.0",
+    "electron-prebuilt": "^0.25.1"
   }
 }

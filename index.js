@@ -1,126 +1,33 @@
-/* global node */
 'use strict';
 
-var assign = node('object-assign');
-var drop = require('component/drop-anywhere');
-var each = node('each-async');
-var fs = node('fs');
-var Imagemin = node('imagemin');
-var path = node('path');
-var Spinner = require('component/spinner');
+const app = require('app');
+const BrowserWindow = require('browser-window');
+const Menu = require('menu');
+const path = require('path');
+const menu = require('./lib/menu');
 
-/**
- * Minify images
- *
- * @param {Object} file
- * @param {Function} cb
- * @api private
- */
+require('crash-reporter').start();
+let mainWindow = null;
 
-function minify(file, cb) {
-	fs.readFile(file.path, function (err, buf) {
-		if (err) {
-			cb(err);
-			return;
-		}
-
-		var imagemin = new Imagemin()
-			.src(buf)
-			.dest(path.join(path.dirname(file.path), 'build', path.basename(file.path)))
-			.use(Imagemin.gifsicle())
-			.use(Imagemin.jpegtran())
-			.use(Imagemin.optipng())
-			.use(Imagemin.pngquant())
-			.use(Imagemin.svgo());
-
-		imagemin.optimize(function (err, file) {
-			if (err) {
-				cb(err);
-				return;
-			}
-
-			cb(null, assign(file, { original: buf }));
-		});
-	});
-}
-
-/**
- * Create spinner
- *
- * @api private
- */
-
-function spin() {
-	var w = document.body.offsetWidth;
-	var h = document.body.offsetHeight;
-	var s = new Spinner()
-		.size(w / 4)
-		.light();
-
-	s.el.style.position = 'absolute';
-	s.el.style.top = h / 2 - (w / 4) / 2 + 'px';
-	s.el.style.left = w / 2 - (w / 4) / 2 + 'px';
-
-	spin.remove = function () {
-		document.body.removeChild(s.el);
-	};
-
-	window.addEventListener('resize', function () {
-		w = document.body.offsetWidth;
-		h = document.body.offsetHeight;
-	});
-
-	document.body.appendChild(s.el);
-	return s;
-}
-
-/**
- * Toggle display
- *
- * @param {Element} el
- * @api private
- */
-
-function toggle(el) {
-	el = document.querySelector(el);
-
-	if (el.style.display === 'none') {
-		el.style.display = 'block';
-		return;
+app.on('window-all-closed', function () {
+	if (process.platform !== 'darwin') {
+		app.quit();
 	}
+});
 
-	el.style.display = 'none';
-}
+app.on('ready', function () {
+	Menu.setApplicationMenu(menu());
 
-/**
- * Run
- */
+	mainWindow = new BrowserWindow({
+		width: 600,
+		height: 400,
+		resizable: false,
+		preload: path.join(__dirname, 'browser.js')
+	});
 
-drop(function (e) {
-	var files = [];
+	mainWindow.loadUrl(`file://${__dirname}/index.html`);
 
-	toggle('#drop-anywhere');
-	spin();
-
-	each(e.items, function (item, i, done) {
-		minify(item, function (err, file) {
-			if (err) {
-				done(err);
-				return;
-			}
-
-			files.push(file);
-			done();
-		});
-	}, function (err) {
-		if (err) {
-			console.error(err);
-			return;
-		}
-
-		toggle('#drop-anywhere');
-		spin.remove();
-
-		files = [];
+	mainWindow.on('closed', function () {
+		mainWindow = null;
 	});
 });
